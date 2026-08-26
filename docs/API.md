@@ -1,7 +1,7 @@
 # GEEST API — Referencia de Endpoints
 
 **Base URL local:** `http://localhost:5173`  
-**Base URL producción:** _(Railway — ver README)_
+**Base URL producción:** `https://geest-api-production-771f.up.railway.app`
 
 Todos los endpoints reciben y responden `Content-Type: application/json`.
 

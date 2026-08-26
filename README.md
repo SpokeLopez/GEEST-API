@@ -90,7 +90,7 @@ Accesible en `/dashboard`. **Qué resuelve:** visibilidad del estado de tareas y
 
 ## Despliegue en Railway
 
-- **URL pública:** _disponible tras el primer deploy_
+- **URL pública:** https://geest-api-production-771f.up.railway.app
 - **Variables requeridas:** `DATABASE_URL` (plugin MySQL de Railway), `NOTIFY_URL`, `NODE_ENV=production`
 - `npm start` ejecuta `prisma migrate deploy` antes de arrancar → migraciones aplicadas en cada deploy automáticamente.
 
