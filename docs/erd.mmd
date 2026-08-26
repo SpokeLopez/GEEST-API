@@ -1,0 +1,48 @@
+erDiagram
+    User {
+        Int id PK
+        String name
+        String lastName
+        String email UK
+        DateTime createdAt
+    }
+
+    Task {
+        Int id PK
+        String title
+        String description
+        TaskStatus status
+        DateTime createdAt
+        DateTime archivedAt
+    }
+
+    TaskAssignment {
+        Int id PK
+        Int taskId FK
+        Int userId FK
+        Boolean completed
+        DateTime completedAt
+    }
+
+    NotificationAttempt {
+        Int id PK
+        Int taskId FK
+        Int attemptNumber
+        DateTime timestamp
+        Int httpStatus
+        Boolean succeeded
+    }
+
+    IdempotencyKey {
+        Int id PK
+        String key
+        String endpoint
+        String requestHash
+        String responseBody
+        Int responseStatus
+        DateTime createdAt
+    }
+
+    User ||--o{ TaskAssignment : "assigned to"
+    Task ||--o{ TaskAssignment : "has"
+    Task ||--o{ NotificationAttempt : "generates"

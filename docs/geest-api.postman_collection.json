@@ -1,0 +1,565 @@
+{
+  "info": {
+    "name": "GEEST API",
+    "description": "Colección completa de la API de gestión de tareas GEEST.\n\nConfigura la variable `baseUrl` con la URL base del servidor:\n- Local: http://localhost:5173\n- Producción: https://tu-app.railway.app",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5173",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Crear usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana\",\n  \"lastName\": \"López\",\n  \"email\": \"ana@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Crea un nuevo usuario.\n\n**Respuesta exitosa:** 201 con `{ id, name, lastName, email }`\n\n**Errores:**\n- 400 `VALIDATION_ERROR` — campo faltante o email inválido\n- 409 `CONFLICT` — email ya existe"
+          },
+          "response": [
+            {
+              "name": "201 — Creado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Ana\",\n  \"lastName\": \"López\",\n  \"email\": \"ana@example.com\"\n}"
+                },
+                "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 1,\n  \"name\": \"Ana\",\n  \"lastName\": \"López\",\n  \"email\": \"ana@example.com\"\n}"
+            },
+            {
+              "name": "400 — Email inválido",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Ana\",\n  \"lastName\": \"López\",\n  \"email\": \"no-es-email\"\n}"
+                },
+                "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Invalid email format.\"\n  }\n}"
+            },
+            {
+              "name": "409 — Email duplicado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Ana\",\n  \"lastName\": \"López\",\n  \"email\": \"ana@example.com\"\n}"
+                },
+                "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"CONFLICT\",\n    \"message\": \"A user with that email already exists.\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Crear usuario (con Idempotency-Key)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "clave-unica-001" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos\",\n  \"lastName\": \"Ramírez\",\n  \"email\": \"carlos@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Crea un usuario con `Idempotency-Key`. Enviar esta petición dos veces con la misma key y el mismo body debe producir exactamente la misma respuesta y un solo registro en la base de datos."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Retorna todos los usuarios con sus tareas pendientes (asignadas y no completadas)."
+          },
+          "response": [
+            {
+              "name": "200 — Lista de usuarios",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "[\n  {\n    \"id\": 1,\n    \"name\": \"Ana\",\n    \"lastName\": \"López\",\n    \"email\": \"ana@example.com\",\n    \"createdAt\": \"2026-08-25T03:00:00.000Z\",\n    \"pendingTasks\": [\n      { \"id\": 2, \"title\": \"Revisar PR\", \"status\": \"open\" }\n    ]\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Tareas de un usuario",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}", "tasks"]
+            },
+            "description": "Lista todas las tareas asignadas al usuario, indicando si completó su parte en cada una.\n\n**Errores:**\n- 404 `NOT_FOUND` — usuario no existe"
+          },
+          "response": [
+            {
+              "name": "200 — Tareas del usuario",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/users/1/tasks", "host": ["{{baseUrl}}"], "path": ["users", "1", "tasks"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "[\n  {\n    \"id\": 1,\n    \"title\": \"Revisar PR\",\n    \"description\": \"PR #42\",\n    \"status\": \"open\",\n    \"createdAt\": \"2026-08-25T03:00:00.000Z\",\n    \"archivedAt\": null,\n    \"completed\": false,\n    \"completedAt\": null\n  }\n]"
+            },
+            {
+              "name": "404 — Usuario no existe",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/users/99999/tasks", "host": ["{{baseUrl}}"], "path": ["users", "99999", "tasks"] }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"User not found.\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tareas",
+      "item": [
+        {
+          "name": "Crear tarea",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Revisar PR\",\n  \"description\": \"PR #42 en repositorio principal\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"]
+            },
+            "description": "Crea una nueva tarea con estado `open` por defecto.\n\n**Errores:**\n- 400 `VALIDATION_ERROR` — `title` faltante"
+          },
+          "response": [
+            {
+              "name": "201 — Creada",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Revisar PR\",\n  \"description\": \"PR #42\"\n}"
+                },
+                "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 1,\n  \"title\": \"Revisar PR\",\n  \"description\": \"PR #42 en repositorio principal\",\n  \"status\": \"open\"\n}"
+            },
+            {
+              "name": "400 — Sin título",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"description\": \"Solo descripción, sin título\"\n}" },
+                "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"Field title is required.\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar tareas (todas)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"]
+            },
+            "description": "Lista todas las tareas con sus asignaciones."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar tareas abiertas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks?status=open",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [{ "key": "status", "value": "open" }]
+            },
+            "description": "Filtra tareas por estado `open`."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar tareas archivadas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks?status=archived",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks"],
+              "query": [{ "key": "status", "value": "archived" }]
+            },
+            "description": "Filtra tareas por estado `archived`."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle de tarea",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}"]
+            },
+            "description": "Retorna el detalle de una tarea incluyendo todos los usuarios asignados y su estado de completado.\n\n**Errores:**\n- 404 `NOT_FOUND` — tarea no existe"
+          },
+          "response": [
+            {
+              "name": "200 — Detalle",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/tasks/1", "host": ["{{baseUrl}}"], "path": ["tasks", "1"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": 1,\n  \"title\": \"Revisar PR\",\n  \"description\": \"PR #42\",\n  \"status\": \"open\",\n  \"createdAt\": \"2026-08-25T03:00:00.000Z\",\n  \"archivedAt\": null,\n  \"assignments\": [\n    {\n      \"userId\": 1,\n      \"completed\": false,\n      \"completedAt\": null,\n      \"user\": {\n        \"id\": 1,\n        \"name\": \"Ana\",\n        \"lastName\": \"López\",\n        \"email\": \"ana@example.com\"\n      }\n    }\n  ]\n}"
+            },
+            {
+              "name": "404 — No encontrada",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/tasks/99999", "host": ["{{baseUrl}}"], "path": ["tasks", "99999"] }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Task not found.\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Asignar usuarios a tarea",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [1, 2]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "assign"]
+            },
+            "description": "Asigna uno o más usuarios a la tarea. La operación es atómica: si algún `userId` no existe, ninguno se asigna. Si un usuario ya estaba asignado, se omite silenciosamente.\n\n**Errores:**\n- 404 `NOT_FOUND` — tarea o algún usuario no existe\n- 400 `VALIDATION_ERROR` — `userIds` con formato inválido"
+          },
+          "response": [
+            {
+              "name": "200 — Asignado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"userIds\": [1, 2]\n}" },
+                "url": { "raw": "{{baseUrl}}/tasks/1/assign", "host": ["{{baseUrl}}"], "path": ["tasks", "1", "assign"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Users assigned successfully.\"\n}"
+            },
+            {
+              "name": "404 — Usuario inexistente",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"userIds\": [99999]\n}" },
+                "url": { "raw": "{{baseUrl}}/tasks/1/assign", "host": ["{{baseUrl}}"], "path": ["tasks", "1", "assign"] }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"Users not found: 99999\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Completar asignación",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "complete"]
+            },
+            "description": "Marca la parte del usuario como completada. Si todos los asignados completan, la tarea se archiva automáticamente y se dispara la notificación a `NOTIFY_URL` (con reintentos en backoff: 1s, 5s, máx. 3 intentos).\n\n**Errores:**\n- 404 `NOT_FOUND` — tarea o usuario no existe\n- 400 `NOT_ASSIGNED` — usuario no está asignado a esta tarea"
+          },
+          "response": [
+            {
+              "name": "200 — Completado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"userId\": 1\n}" },
+                "url": { "raw": "{{baseUrl}}/tasks/1/complete", "host": ["{{baseUrl}}"], "path": ["tasks", "1", "complete"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"message\": \"Task marked as completed.\"\n}"
+            },
+            {
+              "name": "400 — No asignado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"userId\": 99\n}" },
+                "url": { "raw": "{{baseUrl}}/tasks/1/complete", "host": ["{{baseUrl}}"], "path": ["tasks", "1", "complete"] }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_ASSIGNED\",\n    \"message\": \"User is not assigned to this task.\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Intentos de notificación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "notifications"]
+            },
+            "description": "Lista el historial de intentos de notificación de la tarea. Solo aparecen registros cuando la tarea ha sido archivada.\n\nCada objeto incluye `attemptNumber`, `timestamp`, `httpStatus` (null si hubo error de red) y `succeeded`.\n\n**Errores:**\n- 404 `NOT_FOUND` — tarea no existe"
+          },
+          "response": [
+            {
+              "name": "200 — Intentos",
+              "originalRequest": {
+                "method": "GET",
+                "url": { "raw": "{{baseUrl}}/tasks/1/notifications", "host": ["{{baseUrl}}"], "path": ["tasks", "1", "notifications"] }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "[\n  {\n    \"id\": 1,\n    \"attemptNumber\": 1,\n    \"timestamp\": \"2026-08-25T04:00:01.000Z\",\n    \"httpStatus\": 500,\n    \"succeeded\": false\n  },\n  {\n    \"id\": 2,\n    \"attemptNumber\": 2,\n    \"timestamp\": \"2026-08-25T04:00:02.000Z\",\n    \"httpStatus\": 200,\n    \"succeeded\": true\n  }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Flujo completo de demo",
+      "description": "Ejecuta estas peticiones en orden para ver el ciclo completo: crear usuario → crear tarea → asignar → completar → archivar → notificar.",
+      "item": [
+        {
+          "name": "1. Crear usuario A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('userId', json.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana\",\n  \"lastName\": \"López\",\n  \"email\": \"ana.demo@example.com\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          },
+          "response": []
+        },
+        {
+          "name": "2. Crear tarea",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('taskId', json.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tarea de demostración\",\n  \"description\": \"Flujo completo del ciclo de vida de una tarea\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": { "raw": "{{baseUrl}}/tasks", "host": ["{{baseUrl}}"], "path": ["tasks"] }
+          },
+          "response": []
+        },
+        {
+          "name": "3. Asignar usuario a tarea",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [{{userId}}]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "assign"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Completar tarea (archiva + notifica)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{userId}}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "complete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Ver tarea archivada",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Ver intentos de notificación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tasks/{{taskId}}/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["tasks", "{{taskId}}", "notifications"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

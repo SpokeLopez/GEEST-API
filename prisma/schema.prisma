@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int              @id @default(autoincrement())
+  name        String
+  lastName    String
+  email       String           @unique
+  createdAt   DateTime         @default(now())
+  assignments TaskAssignment[]
+}
+
+model Task {
+  id                   Int                   @id @default(autoincrement())
+  title                String
+  description          String?
+  status               TaskStatus            @default(open)
+  createdAt            DateTime              @default(now())
+  archivedAt           DateTime?
+  assignments          TaskAssignment[]
+  notificationAttempts NotificationAttempt[]
+}
+
+enum TaskStatus {
+  open
+  archived
+}
+
+model TaskAssignment {
+  id          Int       @id @default(autoincrement())
+  taskId      Int
+  userId      Int
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  task        Task      @relation(fields: [taskId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@unique([taskId, userId])
+}
+
+model NotificationAttempt {
+  id            Int      @id @default(autoincrement())
+  taskId        Int
+  attemptNumber Int
+  timestamp     DateTime @default(now())
+  httpStatus    Int?
+  succeeded     Boolean  @default(false)
+  task          Task     @relation(fields: [taskId], references: [id])
+}
+
+model IdempotencyKey {
+  id             Int      @id @default(autoincrement())
+  key            String
+  endpoint       String
+  requestHash    String
+  responseBody   String   @db.Text
+  responseStatus Int
+  createdAt      DateTime @default(now())
+
+  @@unique([key, endpoint])
+}
